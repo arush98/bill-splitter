@@ -309,46 +309,71 @@ function App() {
 
                         {/* Items List */}
                         <div className="items-list">
-                            {items.map((item, index) => (
-                                <div key={index} className="item-row mb-3 p-3 bg-light rounded">
-                                    <div className="d-flex justify-content-between align-items-center">
-                                        <div className="d-flex align-items-center">
-                                            <div className="item-icon me-3">
-                                                <i className="fas fa-shopping-basket fa-lg text-primary"></i>
+                            {items.map((item, index) => {
+                                // Determine item category and icon
+                                let category = 'other';
+                                let icon = 'fa-shopping-basket';
+                                let badgeColor = 'secondary';
+                                const name = item.name.toLowerCase();
+                                if (name.includes('milk') || name.includes('cheese') || name.includes('yogurt') || name.includes('butter') || name.includes('eggs')) {
+                                    category = 'dairy';
+                                    icon = 'fa-cheese';
+                                    badgeColor = 'primary';
+                                } else if (name.includes('bread') || name.includes('bun') || name.includes('bakery') || name.includes('french')) {
+                                    category = 'bakery';
+                                    icon = 'fa-bread-slice';
+                                    badgeColor = 'warning';
+                                } else if (name.includes('apple') || name.includes('banana') || name.includes('fruit') || name.includes('vegetable') || name.includes('cauliflower') || name.includes('pepper') || name.includes('onion')) {
+                                    category = 'fruits';
+                                    icon = 'fa-apple-alt';
+                                    badgeColor = 'success';
+                                } else if (name.includes('juice') || name.includes('water') || name.includes('coffee') || name.includes('drink') || name.includes('soda') || name.includes('bottle') || name.includes('beverage')) {
+                                    category = 'beverages';
+                                    icon = 'fa-coffee';
+                                    badgeColor = 'info';
+                                }
+                                return (
+                                    <div key={index} className="item-row mb-3 p-3 bg-light rounded">
+                                        <div className="d-flex justify-content-between align-items-center">
+                                            <div className="d-flex align-items-center">
+                                                <div className="item-icon me-3">
+                                                    <i className={`fas ${icon} fa-lg text-${badgeColor}`}></i>
+                                                </div>
+                                                <div>
+                                                    <div className="item-name fw-bold">{item.name}</div>
+                                                    <div className={`badge bg-${badgeColor} text-uppercase`}>{category}</div>
+                                                    <div className="badge bg-light text-dark ms-2">${item.price.toFixed(2)}</div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <div className="item-name fw-bold">{item.name}</div>
-                                                <div className="badge bg-primary">${item.price.toFixed(2)}</div>
-                                            </div>
-                                        </div>
-                                        <div className="d-flex align-items-center">
-                                            <div className="btn-group me-3">
-                                                {users.map(user => (
-                                                    <button
-                                                        key={user.id}
-                                                        className={`btn btn-sm ${
-                                                            item.assignedUsers.map(Number).includes(Number(user.id))
-                                                                ? `btn-${user.color}`
-                                                                : `btn-outline-${user.color}`
-                                                        }`}
-                                                        onClick={() => toggleItemAssignment(index, user.id)}
-                                                        disabled={!user.active}
-                                                    >
-                                                        <i className="fas fa-user"></i>{user.id}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                            <div className="text-end">
-                                                <small className="text-muted">
-                                                    {item.assignedUsers.length > 0 
-                                                        ? `$${(item.price / item.assignedUsers.length).toFixed(2)} each${item.assignedUsers.length > 1 ? ` (${item.assignedUsers.length} sharing)` : ''}`
-                                                        : 'Not assigned'}
-                                                </small>
+                                            <div className="d-flex align-items-center">
+                                                <div className="btn-group me-3">
+                                                    {users.map(user => (
+                                                        <button
+                                                            key={user.id}
+                                                            className={`btn btn-sm ${
+                                                                item.assignedUsers.map(Number).includes(Number(user.id))
+                                                                    ? `btn-${user.color}`
+                                                                    : `btn-outline-${user.color}`
+                                                            }`}
+                                                            onClick={() => toggleItemAssignment(index, user.id)}
+                                                            disabled={!user.active}
+                                                        >
+                                                            <i className="fas fa-user"></i>{user.id}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <div className="text-end">
+                                                    <small className="text-muted">
+                                                        {item.assignedUsers.length > 0 
+                                                            ? `$${(item.price / item.assignedUsers.length).toFixed(2)} each${item.assignedUsers.length > 1 ? ` (${item.assignedUsers.length} sharing)` : ''}`
+                                                            : 'Not assigned'}
+                                                    </small>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         {/* Total Amount */}
