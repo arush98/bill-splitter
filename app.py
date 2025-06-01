@@ -54,8 +54,8 @@ with app.app_context():
 
 @app.route('/')
 def index():
-    """Serve the main application JavaScript file."""
-    return send_from_directory('static/js', 'app.js')
+    """Render the main page with the receipt parsing interface."""
+    return render_template('index.html')
 
 @app.route('/api/parse', methods=['POST'])
 def parse_receipt():
