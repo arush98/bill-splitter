@@ -3,15 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt Parser</title>
+    <title>Receipt Extractor</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
         :root {
             --primary-color: #4f46e5;
             --secondary-color: #818cf8;
             --success-color: #22c55e;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
             --background-color: #f8fafc;
             --card-background: #ffffff;
             --text-color: #1e293b;
@@ -37,10 +42,6 @@
             border: none;
             border-radius: 1rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transition: transform 0.2s ease-in-out;
-        }
-        .card:hover {
-            transform: translateY(-2px);
         }
         .card-header {
             background-color: transparent;
@@ -58,13 +59,10 @@
             cursor: pointer;
             transition: all 0.3s ease;
             background-color: var(--background-color);
-            position: relative;
-            overflow: hidden;
         }
         .file-upload-container:hover {
             border-color: var(--primary-color);
             background-color: rgba(79, 70, 229, 0.05);
-            transform: translateY(-2px);
         }
         .file-upload-container.dragging {
             border-color: var(--success-color);
@@ -108,7 +106,6 @@
             padding: 0.75rem 1.5rem;
             border-radius: 0.75rem;
             font-weight: 500;
-            transition: all 0.2s ease;
         }
         .btn-primary {
             background-color: var(--primary-color);
@@ -119,38 +116,20 @@
             border-color: var(--secondary-color);
             transform: translateY(-1px);
         }
-        .json-display {
-            background-color: #1e1e1e;
-            color: #d4d4d4;
-            border-radius: 1rem;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            padding: 1.5rem;
-            max-height: 600px;
-            overflow-y: auto;
-        }
-        .user-card {
+        .item-row {
             transition: all 0.3s ease;
         }
-        .user-card:hover {
+        .item-row:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 12px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-        .avatar-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: var(--primary-color);
-            color: white;
+        .toast-container {
+            z-index: 1050;
         }
-        .loading-spinner {
-            color: var(--primary-color);
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
         }
-        .alert {
+        .modal-content {
             border-radius: 1rem;
             border: none;
         }
@@ -194,9 +173,6 @@
         </div>
     </nav>
     <div id="app-root"></div>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}" type="text/babel"></script>
+    <script src="/app.js" type="text/babel"></script>
 </body>
 </html>
