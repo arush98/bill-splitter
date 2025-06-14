@@ -22,7 +22,13 @@ app = Flask(__name__,
 app.secret_key = os.environ.get("SESSION_SECRET", "default-secret-key")
 
 # Configure database
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///receipts.db"
+if os.environ.get('VERCEL'):
+    # Use SQLite in-memory database for Vercel
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+else:
+    # Use local SQLite database for development
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///receipts.db"
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
@@ -36,7 +42,13 @@ db.init_app(app)
 CORS(app)
 
 # Create upload directory
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tmp', 'uploads')
+if os.environ.get('VERCEL'):
+    # Use /tmp for Vercel
+    UPLOAD_FOLDER = '/tmp/uploads'
+else:
+    # Use local directory for development
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tmp', 'uploads')
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 logging.info(f"Upload folder set to: {UPLOAD_FOLDER}")
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
