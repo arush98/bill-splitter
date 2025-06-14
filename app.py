@@ -41,8 +41,12 @@ db.init_app(app)
 # Ensure tables exist on every request (for serverless)
 @app.before_request
 def before_request():
-    with app.app_context():
-        db.create_all()
+    try:
+        with app.app_context():
+            db.create_all()
+    except Exception as e:
+        logging.error(f"Database initialization error: {str(e)}")
+        return jsonify({"error": "Database initialization failed"}), 500
 
 # Enable CORS
 CORS(app)
@@ -69,7 +73,11 @@ def allowed_file(filename):
 @app.route('/')
 def index():
     """Render the main page with the receipt parsing interface."""
-    return render_template('index.html')
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        logging.error(f"Error rendering index: {str(e)}")
+        return jsonify({"error": "Failed to render page"}), 500
 
 @app.route('/api/parse', methods=['POST'])
 def parse_receipt():
@@ -356,5 +364,16 @@ def get_distribution(distribution_id):
         logging.error(f"Error getting distribution: {str(e)}")
         return jsonify({'error': f'Failed to get distribution: {str(e)}'}), 500
 
+# Error handlers
+@app.errorhandler(404)
+def not_found_error(error):
+    return jsonify({"error": "Not found"}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return jsonify({"error": "Internal server error"}), 500
+
+# This is important for Vercel
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5002, debug=True)
+    app.run(host='0.0.0.0', port=5002)
