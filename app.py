@@ -10,6 +10,10 @@ from werkzeug.utils import secure_filename
 from pypdf import PdfReader
 from models import db, Distribution, DistributionUser
 from nanoid import generate
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
