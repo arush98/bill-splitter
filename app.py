@@ -23,8 +23,8 @@ app.secret_key = os.environ.get("SESSION_SECRET", "default-secret-key")
 
 # Configure database
 if os.environ.get('VERCEL'):
-    # Use SQLite in-memory database for Vercel
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+    # Use SQLite file in /tmp for Vercel
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/receipts.db"
 else:
     # Use local SQLite database for development
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///receipts.db"
@@ -37,6 +37,12 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 
 # Initialize database with app
 db.init_app(app)
+
+# Ensure tables exist on every request (for serverless)
+@app.before_request
+def before_request():
+    with app.app_context():
+        db.create_all()
 
 # Enable CORS
 CORS(app)
@@ -59,10 +65,6 @@ ALLOWED_EXTENSIONS = {'pdf'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# Create database tables
-with app.app_context():
-    db.create_all()
 
 @app.route('/')
 def index():
