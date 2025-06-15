@@ -36,23 +36,35 @@ def parse_walmart_receipt(receipt_text):
     lines = receipt_text.split('\n')
     lines = [line.strip() for line in lines if line.strip()]
     
-    # Regular expression pattern to match item lines with prices
-    # Looking for patterns like:
-    # Product Name                                      Shopped Qty X        $XX.XX
-    # or
-    # Product Name                                      Unavailable Qty X    $XX.XX
-    item_pattern = re.compile(r'^(.+?)\s+(?:Shopped|Unavailable)\s+Qty\s+\d+\s+\$([\d.]+)$')
+    # Regular expression patterns to match item lines with prices
+    # Pattern 1: Standard format with "Shopped Qty X"
+    pattern1 = re.compile(r'^(.+?)\s+(?:Shopped|Unavailable)\s+Qty\s+\d+\s+\$([\d.]+)$')
+    # Pattern 2: Format with "Weight-adjusted Qty X"
+    pattern2 = re.compile(r'^(.+?)\s+Weight-adjusted\s+Qty\s+\d+\s+\$([\d.]+)$')
+    # Pattern 3: Tax line
+    tax_pattern = re.compile(r'^Tax\s+\$([\d.]+)$')
     
     # Process each line
     for line in lines:
         # Skip header/footer lines and non-item lines
-        if 'Order#' in line or 'Subtotal' in line or 'Tax' in line or 'Total' in line or 'Driver tip' in line:
+        if 'Order#' in line or 'Subtotal' in line or 'Total' in line or 'Driver tip' in line:
             continue
         if 'delivery' in line.lower() or 'payment method' in line:
             continue
         
-        # Try to match the item pattern
-        match = item_pattern.match(line)
+        # Try to match tax pattern first
+        tax_match = tax_pattern.match(line)
+        if tax_match:
+            tax_amount = float(tax_match.group(1).strip())
+            result["items"].append({
+                "name": "Tax",
+                "price": tax_amount
+            })
+            logging.debug(f"Extracted tax: ${tax_amount}")
+            continue
+        
+        # Try to match item patterns
+        match = pattern1.match(line) or pattern2.match(line)
         if match:
             item_name = match.group(1).strip()
             item_price = float(match.group(2).strip())
@@ -64,9 +76,9 @@ def parse_walmart_receipt(receipt_text):
             })
             logging.debug(f"Extracted item: {item_name} - ${item_price}")
     
-    # If we didn't find any items using the strict pattern, try a more flexible approach
+    # If we didn't find any items using the strict patterns, try a more flexible approach
     if not result["items"]:
-        logging.debug("No items found with strict pattern, trying alternate approach")
+        logging.debug("No items found with strict patterns, trying alternate approach")
         
         # Alternative pattern to handle different receipt formats
         # This looks for a product description followed by a price
@@ -74,14 +86,14 @@ def parse_walmart_receipt(receipt_text):
         
         for line in lines:
             # Skip lines that are clearly not items
-            if 'Order#' in line or 'Subtotal' in line or 'Tax' in line or 'Total' in line:
+            if 'Order#' in line or 'Subtotal' in line or 'Total' in line:
                 continue
             
             match = alt_pattern.search(line)
             if match:
                 item_name = match.group(1).strip()
                 # Skip if it contains keywords that suggest it's not an item
-                if any(keyword in item_name.lower() for keyword in ['subtotal', 'total', 'tax', 'delivery', 'tip']):
+                if any(keyword in item_name.lower() for keyword in ['subtotal', 'total', 'delivery', 'tip']):
                     continue
                 
                 try:
