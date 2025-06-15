@@ -43,6 +43,8 @@ def parse_walmart_receipt(receipt_text):
     pattern2 = re.compile(r'^(.+?)\s+Weight-adjusted\s+Qty\s+\d+\s+\$([\d.]+)$')
     # Pattern 3: Tax line
     tax_pattern = re.compile(r'^Tax\s+\$([\d.]+)$')
+    # Pattern 4: Items with multiple words and no quantity
+    pattern4 = re.compile(r'^(.+?)\s+\$([\d.]+)$')
     
     # Process each line
     for line in lines:
@@ -63,18 +65,26 @@ def parse_walmart_receipt(receipt_text):
             logging.debug(f"Extracted tax: ${tax_amount}")
             continue
         
-        # Try to match item patterns
-        match = pattern1.match(line) or pattern2.match(line)
+        # Try to match all item patterns
+        match = (pattern1.match(line) or 
+                pattern2.match(line) or 
+                pattern4.match(line))
+        
         if match:
             item_name = match.group(1).strip()
-            item_price = float(match.group(2).strip())
-            
-            # Add the item to our result
-            result["items"].append({
-                "name": item_name,
-                "price": item_price
-            })
-            logging.debug(f"Extracted item: {item_name} - ${item_price}")
+            # Skip if it's a summary line
+            if any(keyword in item_name.lower() for keyword in ['subtotal', 'total', 'delivery', 'tip']):
+                continue
+                
+            try:
+                item_price = float(match.group(2).strip())
+                result["items"].append({
+                    "name": item_name,
+                    "price": item_price
+                })
+                logging.debug(f"Extracted item: {item_name} - ${item_price}")
+            except ValueError:
+                logging.debug(f"Failed to convert price to float: {match.group(2)}")
     
     # If we didn't find any items using the strict patterns, try a more flexible approach
     if not result["items"]:
